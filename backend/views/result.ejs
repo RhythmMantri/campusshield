@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <i class="fas fa-certificate header-icon"></i>
+                <h1>Verification Results</h1>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <% if (success) { %>
+                <div class="result-card status-<%= statusColor %>">
+                    <div class="result-header">
+                        <div class="status-icon">
+                            <%= statusIcon %>
+                        </div>
+                        <div class="status-info">
+                            <h2>
+                                <% if (status === 'valid') { %>
+                                    Certificate Valid
+                                <% } else if (status === 'valid_no_blockchain') { %>
+                                    Valid (No Blockchain Record)
+                                <% } else if (status === 'suspicious') { %>
+                                    Certificate Suspicious
+                                <% } else { %>
+                                    Certificate Invalid
+                                <% } %>
+                            </h2>
+                            <p class="status-reason"><%= dbResult.reason %></p>
+                            <% if (dbResult.confidence) { %>
+                                <div class="confidence-bar">
+                                    <span>Confidence: <%= Math.round(dbResult.confidence) %>%</span>
+                                    <div class="progress">
+                                        <div class="progress-fill" style="width: <%= dbResult.confidence %>%"></div>
+                                    </div>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <div class="verification-badges">
+                        <% if (blockchainResult.verified) { %>
+                            <div class="badge blockchain-verified">
+                                <i class="fas fa-link"></i>
+                                Blockchain Verified
+                            </div>
+                        <% } else { %>
+                            <div class="badge blockchain-not-verified">
+                                <i class="fas fa-unlink"></i>
+                                Not on Blockchain
+                            </div>
+                        <% } %>
+                        
+                        <% if (dbResult.status === 'valid') { %>
+                            <div class="badge db-verified">
+                                <i class="fas fa-database"></i>
+                                Database Match
+                            </div>
+                        <% } %>
+                    </div>
+
+                    <div class="details-section">
+                        <h3><i class="fas fa-info-circle"></i> Extracted Information</h3>
+                        <div class="details-grid">
+                            <% if (extractedData.cert_id) { %>
+                                <div class="detail-item">
+                                    <label>Certificate ID:</label>
+                                    <span><%= extractedData.cert_id %></span>
+                                </div>
+                            <% } %>
+                            <% if (extractedData.name) { %>
+                                <div class="detail-item">
+                                    <label>Name:</label>
+                                    <span><%= extractedData.name %></span>
+                                </div>
+                            <% } %>
+                            <% if (extractedData.roll_no) { %>
+                                <div class="detail-item">
+                                    <label>Roll Number:</label>
+                                    <span><%= extractedData.roll_no %></span>
+                                </div>
+                            <% } %>
+                            <% if (extractedData.year) { %>
+                                <div class="detail-item">
+                                    <label>Year:</label>
+                                    <span><%= extractedData.year %></span>
+                                </div>
+                            <% } %>
+                        </div>
+
+                        <% if (dbResult.record) { %>
+                            <h3><i class="fas fa-database"></i> Database Record</h3>
+                            <div class="details-grid">
+                                <div class="detail-item">
+                                    <label>Name:</label>
+                                    <span><%= dbResult.record.name %></span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Roll Number:</label>
+                                    <span><%= dbResult.record.roll_no %></span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Year:</label>
+                                    <span><%= dbResult.record.year %></span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Certificate ID:</label>
+                                    <span><%= dbResult.record.cert_id %></span>
+                                </div>
+                            </div>
+                        <% } %>
+
+                        <h3><i class="fas fa-fingerprint"></i> Technical Details</h3>
+                        <div class="technical-details">
+                            <div class="detail-item">
+                                <label>File Hash (SHA256):</label>
+                                <span class="hash-value"><%= fileHash %></span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Verification Time:</label>
+                                <span><%= new Date().toLocaleString() %></span>
+                            </div>
+                            <% if (blockchainResult.error) { %>
+                                <div class="detail-item error">
+                                    <label>Blockchain Error:</label>
+                                    <span><%= blockchainResult.error %></span>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="verification-summary">
+                    <h3>Verification Summary</h3>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <i class="fas fa-eye"></i>
+                            <div>
+                                <strong>OCR Processing</strong>
+                                <p>Successfully extracted text and data fields</p>
+                            </div>
+                            <span class="status-check">✓</span>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <i class="fas fa-database"></i>
+                            <div>
+                                <strong>Database Verification</strong>
+                                <p><%= dbResult.reason %></p>
+                            </div>
+                            <span class="status-check <%= dbResult.status === 'valid' ? 'success' : (dbResult.status === 'suspicious' ? 'warning' : 'error') %>">
+                                <%= dbResult.status === 'valid' ? '✓' : (dbResult.status === 'suspicious' ? '⚠' : '✗') %>
+                            </span>
+                        </div>
+                        
+                        <div class="summary-item">
+                            <i class="fas fa-link"></i>
+                            <div>
+                                <strong>Blockchain Verification</strong>
+                                <p><%= blockchainResult.verified ? 'Certificate hash found on blockchain' : 'No blockchain record found' %></p>
+                            </div>
+                            <span class="status-check <%= blockchainResult.verified ? 'success' : 'warning' %>">
+                                <%= blockchainResult.verified ? '✓' : '⚠' %>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+            <% } else { %>
+                <div class="result-card status-red">
+                    <div class="result-header">
+                        <div class="status-icon">❌</div>
+                        <div class="status-info">
+                            <h2>Verification Failed</h2>
+                            <p class="status-reason"><%= error %></p>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
